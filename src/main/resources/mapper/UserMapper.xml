@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itheima.reggie.mapper.UserMapper">
+
+
+    <select id="getAllUser" resultType="com.itheima.reggie.entity.User">
+        select * from User;
+    </select>
+
+    <select id="getOneByUser" resultType="com.itheima.reggie.entity.User">
+        select *from User
+        <where>
+            <if test="phone!=null and phone!=''">
+                phone = #{phone}
+            </if>
+            <if test="name!=null and name!=''">
+               and name = #{name}
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveUser" >
+        insert into User(id,name,phone,sex,id_number,avatar,status)
+        values (#{id},#{name},#{phone},#{sex},#{idNumber},#{avatar},#{status})
+    </insert>
+
+</mapper>
