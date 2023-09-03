@@ -1,7 +1,16 @@
+import com.itheima.reggie.service.RedisTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
 @author lh
 @Date 2023/8/20 11:05
 @ 意图：
+
 */public class SelectSort {
 
     /**
@@ -85,5 +94,12 @@
         for (int i = 0; i<makeSort.length;i++){
             System.out.println("自制排序："+a[i]);
         }
+    }
+    @Test
+    public void tetsRedis(){
+        RedisTemplate<String, Object> map = new RedisTemplate<>();
+        map.opsForValue().set("phone",1234);
+        RedisTest redisTest = new RedisTest(map);
+        redisTest.doSomethingWithRedis();
     }
 }

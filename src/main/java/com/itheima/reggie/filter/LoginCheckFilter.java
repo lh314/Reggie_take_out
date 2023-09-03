@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.itheima.reggie.common.BaseContext;
 import com.itheima.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import javax.servlet.*;
@@ -19,9 +22,12 @@ import java.io.IOException;
  */
 
 @Slf4j
+@Component
 @WebFilter(filterName = "LoginCheckFilter",urlPatterns = "/*")
 public class LoginCheckFilter implements Filter {
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 //    用于路径匹配
     public final static AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     @Override
@@ -47,6 +53,7 @@ public class LoginCheckFilter implements Filter {
                 //对用户登陆操作放行
                 "/common/**",
                 "/user/login",
+                "/front/page/login",
                  "/user/sendMsg"};
 
         boolean check = check(urls, requestURI);
@@ -69,6 +76,7 @@ public class LoginCheckFilter implements Filter {
             return;
         }
         Object user = request.getSession().getAttribute("user");
+
         if(user!=null){
             log.info("登录账号id{}",request.getSession().getAttribute("user"));
             Long userId = (Long) request.getSession().getAttribute("user");

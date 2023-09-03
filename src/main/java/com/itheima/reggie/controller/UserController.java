@@ -9,6 +9,7 @@ import com.itheima.reggie.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lh
@@ -35,6 +37,9 @@ public class UserController {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @PostMapping("/sendMsg")
     public R<String> sendMsg(@RequestBody User user, HttpSession session) throws MessagingException {
         String phone = user.getPhone();
@@ -43,6 +48,10 @@ public class UserController {
             String code = MailUtil.achieveCode();
             log.info("验证码code={}",code);
             session.setAttribute(phone,code);
+
+//            用redis缓存
+            redisTemplate.opsForValue().set("phone",code,5, TimeUnit.MINUTES);
+            log.info("redis存储phone对应code={}", redisTemplate.opsForValue().get("phone"));
             log.info("session存储phone对应code={}",session.getAttribute(phone));
 //            发送短信
             MailUtil.sendTestMail(phone,code);
@@ -56,8 +65,9 @@ public class UserController {
         String code = map.get("code").toString();
         Object sessionAttribute = session.getAttribute(phone);
         if (sessionAttribute!=null){
-            String sessionCode = session.getAttribute(phone).toString();
-            if(code.equals(sessionCode)){
+//            String sessionCode = session.getAttribute(phone).toString();
+            String redisCode = (String)redisTemplate.opsForValue().get("phone");
+            if(code.equals(redisCode)){
 //                LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
 //                queryWrapper.eq(User::getPhone,phone);
 //                User user = userService.getOne(queryWrapper);
@@ -73,6 +83,7 @@ public class UserController {
 //                    userService.save(user);
                     userMapper.saveUser(user);
             }
+                redisTemplate.delete("phone");
             session.setAttribute("user",user.getId());
             return R.success(user);
         }
